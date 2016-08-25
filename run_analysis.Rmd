@@ -1,0 +1,189 @@
+---
+title: "run_analysis.Rmd"
+author: "Sean Norris"
+date: "August 25, 2016"
+output: html_document
+---
+
+### Overview
+This is an R Markdown document explaining my steps for the Getting and Cleaning Data Course Assignment.
+
+The following code will allow you to:
+
+1. Merge the training and the test sets to create one data set
+2. Uses descriptive activity names to name the activities in the data set
+3. Extract only the measurements on the mean and standard deviation for each measurement
+4. Appropriately label the data set with descriptive variable names
+5. Create a second, independent tidy data set with the average of each variable for each activity and each subject
+
+### Pre-work
+
+Clear Workspace
+
+```{r}
+rm(list=ls())
+```
+
+Download Data
+
+```{r}
+datalink <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+filename <- "Dataset.zip"
+if (!file.exists(path)) {dir.create(path)}
+download.file(datalink, file.path(path, filename))
+```
+
+Unzip File
+
+```{r}
+unzip(filename)
+```
+
+Set working directory to unzipped file location
+
+```{r}
+setwd("C:/Users/snorris/Downloads/UCI HAR Dataset")
+```
+
+### 1. Merge Training and Test Data
+
+Read in feature and activity data frames
+
+```{r}
+features = read.table('./features.txt',header=FALSE)
+activityType = read.table('./activity_labels.txt',header=FALSE)
+```
+
+Read in training data
+
+```{r}
+subjectTrain = read.table('./train/subject_train.txt',header=FALSE)
+xTrain = read.table('./train/x_train.txt',header=FALSE)
+yTrain = read.table('./train/y_train.txt',header=FALSE)
+```
+
+Assign column names to training data
+
+```{r}
+colnames(activityType) = c('activityId','activityType')
+colnames(subjectTrain) = "subjectId"
+colnames(xTrain) = features[,2] 
+colnames(yTrain) = "activityId"
+```
+
+Merge training datasets
+
+```{r}
+trainingData = cbind(yTrain,subjectTrain,xTrain)
+```
+
+Read test data
+
+```{r}
+subjectTest = read.table('./test/subject_test.txt',header=FALSE)
+xTest = read.table('./test/x_test.txt',header=FALSE)
+yTest = read.table('./test/y_test.txt',header=FALSE)
+```
+
+Assign column names to test data
+
+```{r}
+colnames(subjectTest) = "subjectId"
+colnames(xTest)       = features[,2] 
+colnames(yTest)       = "activityId"
+```
+
+Create test dataset
+
+```{r}
+testData = cbind(yTest,subjectTest,xTest)
+```
+
+Merge test and training data sets
+
+```{r}
+masterdt = rbind(trainingData,testData)
+```
+
+### 2. Add Descriptive Activity Names
+
+Create column names for master data set
+
+```{r}
+colNames = colnames(masterdt)
+```
+
+Define logical vector for pulling out ID, mean() and stddev() 
+
+```{r}
+LVect = (grepl("activity..",colNames) | grepl("subject..",colNames) | grepl("-mean..",colNames) & !grepl("-meanFreq..",colNames) & !grepl("mean..-",colNames) | grepl("-std..",colNames) & !grepl("-std()..-",colNames))
+```
+
+Subset master data set using the vector
+
+```{r}
+masterdt = masterdt[LVector = TRUE]
+```
+
+Add descriptive activity names to master dataset and update column names
+
+```{r}
+masterdt = merge(masterdt,activityType,by='activityId',all.x=TRUE)
+colNames  = colnames(masterdt)
+```
+
+Clean variable names
+
+```{r}
+for (i in 1:length(colNames)) 
+{
+  colNames[i] = gsub("\\()","",colNames[i])
+  colNames[i] = gsub("-std$","StdDev",colNames[i])
+  colNames[i] = gsub("-mean","Mean",colNames[i])
+  colNames[i] = gsub("^(t)","time",colNames[i])
+  colNames[i] = gsub("^(f)","freq",colNames[i])
+  colNames[i] = gsub("([Gg]ravity)","Gravity",colNames[i])
+  colNames[i] = gsub("([Bb]ody[Bb]ody|[Bb]ody)","Body",colNames[i])
+  colNames[i] = gsub("[Gg]yro","Gyro",colNames[i])
+  colNames[i] = gsub("AccMag","AccMagnitude",colNames[i])
+  colNames[i] = gsub("([Bb]odyaccjerkmag)","BodyAccJerkMagnitude",colNames[i])
+  colNames[i] = gsub("JerkMag","JerkMagnitude",colNames[i])
+  colNames[i] = gsub("GyroMag","GyroMagnitude",colNames[i])
+}
+```
+
+Reassign new column names to master data set
+
+```{r}
+colnames(masterdt) = colNames
+```
+
+Create data set without activityType column
+
+```{r}
+masterdtsansActivityType = masterdt[,names(masterdt) != 'activityType']
+```
+
+###3. Extract Mean and Standard Deviation Measurements
+
+Aggregate new data set with only mean and standard deviation
+
+```{r}
+SeanstidyData = aggregate(masterdtsansActivityType[,names(masterdtsansActivityType) != c('activityId','subjectId')], by = list(activityId = masterdtsansActivityType$activityId, subjectId = masterdtsansActivityType$subjectId),mean)
+```
+
+### 4. Label with Descriptive Variable Names
+
+Add descriptive activity names
+
+```{r}
+SeanstidyData = merge(SeanstidyData, activityType, by = 'activityId', all.x = TRUE)
+```
+
+### 5. Creates Independent Tidy Data Set
+
+Create tidy data table
+
+```{r}
+write.table(SeanstidyData, './SeanstidyData.txt', row.names = TRUE, sep = '\t')
+```
