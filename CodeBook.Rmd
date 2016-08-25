@@ -1,0 +1,8 @@
+##Code Book for Getting and Cleaning Data Project
+The following is my codebook for the Getting and Cleaning Data Project.
+
+##Data Structure
+
+```{r, echo=FALSE}
+str(finalData2)
+```
