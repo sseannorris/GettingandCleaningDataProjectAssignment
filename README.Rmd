@@ -1,0 +1,21 @@
+##Read Me for Getting and Cleaning Data Project
+
+The following is my Read Me file for the Getting and Cleaning Data Project
+
+####Project Background
+
+One of the most exciting areas in all of data science right now is wearable computing - see for example this article . Companies like Fitbit, Nike, and Jawbone Up are racing to develop the most advanced algorithms to attract new users. The data linked to from the course website represent data collected from the accelerometers from the Samsung Galaxy S smartphone. A full description is available at the site where the data was obtained:
+
+http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
+
+Here are the data for the project:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+
+####Repo Contents
+
+This repo contains the following documents:
+
+1. An markdown file for ascript called __"run_analysis.Rmd"__
+2. A code book for the tidy data set created called __"CodeBook.Rmd"__
+3. A tidy data set called __"SeanstidyData.txt"__
